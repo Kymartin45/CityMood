@@ -1,17 +1,18 @@
-// const SpotifyWebApi = require('spotify-web-api-node');
+const SpotifyWebApi = require('spotify-web-api-node');
 const express = require('express');
 const cors = require('cors');
 const request = require('request');
 const { json } = require('express');
 const querystring = require('querystring');
 const { stat } = require('fs');
+const { post } = require('request');
 require('dotenv').config();
 
 const app = express();
 //Temp to test OAuth flow before Heorku deployment
 const port = 8888;
 
-const client_id = process.env.CLIENT_ID;
+const client_id = process.env.CLIENT_ID; 
 const client_secret = process.env.CLIENT_SECRET;
 const redirect_uri = process.env.REDIRECT_URI;
 
@@ -39,10 +40,10 @@ app.get('/callback', function(req, res) {
         },
         json: true
     }
-    request.post(authOptions, function(error, res, body) {
+    request.post(authOptions, function(error, response, body) {
         var access_token = body.access_token
         let uri = redirect_uri || 'http://localhost:3000'
-        res.redirect(uri + '?access_token=' + access_token)
+        res.redirect(uri + '?access_token=' + access_token);
     });
 });
 
