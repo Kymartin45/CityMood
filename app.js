@@ -2,7 +2,7 @@ const SpotifyWebApi = require('spotify-web-api-node');
 const express = require('express');
 const cors = require('cors');
 const request = require('request');
-const { json } = require('express');
+const { json, query } = require('express');
 const querystring = require('querystring');
 const { stat } = require('fs');
 const { post } = require('request');
@@ -16,6 +16,8 @@ const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 const redirect_uri = process.env.REDIRECT_URI;
 
+app.use(express.static(__dirname + '/public'));
+
 app.get('/login', function(req, res) {
     res.redirect('https://accounts.spotify.com/authorize?' + 
     querystring.stringify({
@@ -27,8 +29,8 @@ app.get('/login', function(req, res) {
 });
 
 app.get('/callback', function(req, res) {
-    let code = req.query.code || null 
-    let authOptions = {
+    const code = req.query.code || null 
+    const authOptions = {
         url: 'https://accounts.spotify.com/api/token',
         form: {
             code: code,
@@ -41,16 +43,14 @@ app.get('/callback', function(req, res) {
         json: true
     }
     request.post(authOptions, function(error, response, body) {
-        var access_token = body.access_token
-        let uri = 'http://localhost:8888/home';
+        const access_token = body.access_token
+        const uri = 'http://localhost:8888/';
         res.redirect(uri + '?access_token=' + access_token);
         //User access token info
         //Refreshes every hour upon login
         console.log(body);
     });
 });
-
-//app.get('/')
 
 //Will implement Heroku server hosting
 console.log(`Listening on ${port}. Go to /login for OAuth flow`);
