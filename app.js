@@ -42,10 +42,15 @@ app.get('/callback', function(req, res) {
     }
     request.post(authOptions, function(error, response, body) {
         var access_token = body.access_token
-        let uri = redirect_uri || 'http://localhost:3000'
+        let uri = 'http://localhost:8888/home';
         res.redirect(uri + '?access_token=' + access_token);
+        //User access token info
+        //Refreshes every hour upon login
+        console.log(body);
     });
 });
+
+//app.get('/')
 
 //Will implement Heroku server hosting
 console.log(`Listening on ${port}. Go to /login for OAuth flow`);
