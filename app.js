@@ -50,11 +50,7 @@ app.get('/callback', function(req, res) {
         const uri = 'http://localhost:8888/';
         res.redirect(`${uri}?access_token=${access_token}`);
         //User access token info
-        //Refreshes every hour upon login
         console.log(body);
-
-        const accessKey = access_token['access_token'];
-        console.log(accessKey);
     });
 });
 
