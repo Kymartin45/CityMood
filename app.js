@@ -1,12 +1,13 @@
-const SpotifyWebApi = require('spotify-web-api-node');
+// const SpotifyWebApi = require('spotify-web-api-node');
 const express = require('express');
-const cors = require('cors');
+// const cors = require('cors');
 const request = require('request');
 const { json, query } = require('express');
 const querystring = require('querystring');
 const { stat } = require('fs');
 const { post } = require('request');
-const fetch = require('node-fetch');
+// const fetch = require('node-fetch');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -17,9 +18,9 @@ const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 const redirect_uri = process.env.REDIRECT_URI;
 
-// const accessToken = {access_token: ''};
-
 app.use(express.static(__dirname + '/public'));
+app.use('/js', express.static(path.join(__dirname, 'node_modules/bootstrap/dist/js')));
+app.use('/js', express.static(path.join(__dirname, 'node_modules/jquery/dist')));
 
 app.get('/login', function(req, res) {
     res.redirect('https://accounts.spotify.com/authorize?' + 
