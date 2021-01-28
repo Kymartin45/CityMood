@@ -6,6 +6,7 @@ const { json, query } = require('express');
 const querystring = require('querystring');
 const { stat } = require('fs');
 const { post } = require('request');
+const fetch = require('node-fetch');
 require('dotenv').config();
 
 const app = express();
@@ -15,6 +16,8 @@ const port = 8888;
 const client_id = process.env.CLIENT_ID; 
 const client_secret = process.env.CLIENT_SECRET;
 const redirect_uri = process.env.REDIRECT_URI;
+
+// const accessToken = {access_token: ''};
 
 app.use(express.static(__dirname + '/public'));
 
@@ -45,10 +48,13 @@ app.get('/callback', function(req, res) {
     request.post(authOptions, function(error, response, body) {
         const access_token = body.access_token
         const uri = 'http://localhost:8888/';
-        res.redirect(uri + '?access_token=' + access_token);
+        res.redirect(`${uri}?access_token=${access_token}`);
         //User access token info
         //Refreshes every hour upon login
         console.log(body);
+
+        const accessKey = access_token['access_token'];
+        console.log(accessKey);
     });
 });
 
