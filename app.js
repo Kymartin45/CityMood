@@ -1,4 +1,3 @@
-const SpotifyWebApi = require('spotify-web-api-node');
 const express = require('express');
 const request = require('request');
 const { json, query } = require('express');
@@ -6,7 +5,7 @@ const querystring = require('querystring');
 const { stat } = require('fs');
 const { post, get } = require('request');;
 const bodyParser = require('body-parser');
-const { spotifyGenres } = require('./weatherAudio/weatherGenre');
+const path = require('path');
 
 require('dotenv').config();
 
@@ -16,13 +15,8 @@ const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 const redirect_uri = process.env.REDIRECT_URI;
 
-const spotifyApi = new SpotifyWebApi({
-    clientId: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
-    redirectUri: process.env.REDIRECT_URI
-});
-
 app.use(express.static(__dirname + '/public'));
+app.use(express.static(path.join(__dirname, 'src')));
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
@@ -59,7 +53,7 @@ app.get('/callback', function(req, res) {
         const token = body.access_token;
         const expireToken = body.expires_in;
         const uri = 'http://localhost:8888';
-        res.redirect(`${uri}?access_token=${token}`);
+        // res.redirect(`${uri}?access_token=${token}`);
         //User access token info
         //Changes upon login
         console.log(`Logged in. Access token expires in ${expireToken} seconds (1 hour)`);
@@ -69,8 +63,17 @@ app.get('/callback', function(req, res) {
         tokenObj['access_token'] = token;
         console.log(tokenObj);
 
-        module.exports = {token, code, state, spotifyApi}
+        module.exports.token = token;
+        // Passes access token and refresh token to browser to make requests
+        res.redirect('/#' + querystring.stringify({
+            access_token: token,
+            refresh_token: expireToken
+        }));
     });
+});
+
+app.get('/', function(req, res) {
+    res.render('public');
 });
 
 //Will implement Heroku server hosting
