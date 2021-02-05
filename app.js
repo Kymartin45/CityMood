@@ -15,8 +15,22 @@ const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 const redirect_uri = process.env.REDIRECT_URI;
 
+const stateKey = 'spotify_auth_state';
+const accessToken = '';
+const refreshToken = '';
+
+var generateRandomString = function(length) {
+    var text = '';
+    var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  
+    for (var i = 0; i < length; i++) {
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+};
+
 app.use(express.static(__dirname + '/public'));
-app.use(express.static(path.join(__dirname, 'src')));
+const publicPath = path.join(__dirname, 'public');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
@@ -50,30 +64,44 @@ app.get('/callback', function(req, res) {
         json: true
     }
     request.post(authOptions, function(error, response, body) {
-        const token = body.access_token;
-        const expireToken = body.expires_in;
+        const accessToken = body.access_token;
+        const refreshToken = body.expires_in;
         const uri = 'http://localhost:8888';
         // res.redirect(`${uri}?access_token=${token}`);
         //User access token info
         //Changes upon login
-        console.log(`Logged in. Access token expires in ${expireToken} seconds (1 hour)`);
+        console.log(`Logged in. Access token expires in ${refreshToken} seconds (1 hour)`);
 
         //Stores access token in tokenObj for later use
-        var tokenObj = {}
-        tokenObj['access_token'] = token;
-        console.log(tokenObj);
+        var access_token = {}
+        access_token['access_token'] = accessToken;
+        console.log(access_token)
 
-        module.exports.token = token;
         // Passes access token and refresh token to browser to make requests
         res.redirect('/#' + querystring.stringify({
-            access_token: token,
-            refresh_token: expireToken
+            access_token: accessToken,
+            refresh_token: refreshToken
         }));
     });
 });
 
-app.get('/', function(req, res) {
-    res.render('public');
+module.exports.accessToken = { accessToken } ;
+
+//Get user playlists
+app.get('/playlists', function(req, res) {
+    const state = generateRandomString(16);
+    const scope = 'playlist-read-private';
+    res.cookie(stateKey, state);
+    res.redirect('https://api.spotify.com/v1/me/playlists?' +
+    querystring.stringify({
+        access_token: accessToken,
+        token_type: 'Bearer',
+        // response_type: 'code',
+        // client_id: client_id,
+        // scope: scope,
+        // redirect_uri: redirect_uri,
+        // state: state
+    }));
 });
 
 //Will implement Heroku server hosting
