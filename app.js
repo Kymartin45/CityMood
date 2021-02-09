@@ -1,130 +1,119 @@
 const express = require('express');
-var request = require('request');
-const { json, query, response } = require('express');
+const request = require('request');
 const querystring = require('querystring');
-const { post, get } = require('request');;
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
-
-require('dotenv').config();
-
+const stateKey = 'spotify_auth_state';
 const app = express();
 
-const CLIENT_ID = process.env.client_id; 
-const CLIENT_SECRET = process.env.client_secret;
-const REDIRECT_URI = process.env.redirect_uri;
+var SpotifyWebApi = require('spotify-web-api-node');
+require('dotenv').config();
 
-var stateKey = 'spotify_auth_state';
+app.use(express.static(__dirname = './public'))
+    .use(cors())
+    .use(cookieParser());
 
 var generateRandomString = function(length) {
     var text = '';
     var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  
+      
     for (var i = 0; i < length; i++) {
-      text += possible.charAt(Math.floor(Math.random() * possible.length));
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
     }
     return text;
 };
 
-app.use(express.static(__dirname = '/public'))
-    .use(cors())
-    .use(cookieParser());
+const scopes = [
+    'ugc-image-upload',
+    'user-read-playback-state',
+    'user-modify-playback-state',
+    'user-read-currently-playing',
+    'streaming',
+    'app-remote-control',
+    'user-read-email',
+    'user-read-private',
+    'playlist-read-collaborative',
+    'playlist-modify-public',
+    'playlist-read-private',
+    'playlist-modify-private',
+    'user-library-modify',
+    'user-library-read',
+    'user-top-read',
+    'user-read-playback-position',
+    'user-read-recently-played',
+    'user-follow-read',
+    'user-follow-modify'
+];
+
+// const client_id = process.env.CLIENT_ID; 
+// const client_secret = process.env.CLIENT_SECRET;
+// const redirect_uri = process.env.REDIRECT_URI;
+
+const api = new SpotifyWebApi({
+    clientId: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    redirectUri: process.env.REDIRECT_URI,
+});
+
+app.get('/', function(err, res) {
+    if (!error) {
+        res.sendFile('./index.html', { root: __dirname });
+    } else {
+        console.log(err);
+    }
+});
 
 app.get('/login', function(req, res) {
-    const state = generateRandomString(16);
-    res.cookie(stateKey, state)
+    api.clientCredentialsGrant().then(function(data) {
+        res.redirect(api.createAuthorizeURL(scopes));
+        console.log('Access token expires in ' + data.body['expires_in'] + 's');
+        console.log('Access token: ' + data.body['access_token']);
 
-    //requests authorization
-    var scope = 'user-read-private user-read-email';
-    res.redirect('https://accounts.spotify.com/authorize?' + 
-    querystring.stringify({
-        response_type: 'code',
-        client_id: CLIENT_ID,
-        scope: scope,
-        redirect_uri: REDIRECT_URI,
-        state: state
-    }));
+        //Save access token for future calls 
+        api.setAccessToken(data.body['access_token']);
+
+    }, function(err) {
+        console.log('Error retrieving access token', err)
+    });
 });
 
 app.get('/callback', function(req, res) {
-    const code = req.query.code ||null 
-    const state = req.query.state || null
-    const storedState = req.cookies ? req.cookies[stateKey] : null;
+    const error = req.query.error;
+    const code = req.query.code;
+    const state = req.query.state; 
 
-    if (state === null || state !== storedState) {
-        res.redirect('/#' + 
-        querystring.stringify({
-            error: 'state_mismatch'
-        }));
-    } else {
-        res.clearCookie(stateKey);
-        const authOptions = {
-            url: 'https://api.spotify.com/v1/token',
-            form: {
-                code: code,
-                redirect_uri: REDIRECT_URI,
-                grant_type: 'authorization_code'
-            }, 
-            headers: {
-                'Authorization': 'Basic ' + (new Buffer(CLIENT_ID = ':' + CLIENT_SECRET).toString('base64'))
-            },
-            json: true
-        };
-        request.post(authOptions, function(error, response, body) {
-            if (!error && response.statusCode === 200) {
-                const access_token = body.access_token,
-                    refresh_token = body.refresh_token;
-    
-                const options = {
-                    url: 'https://api.spotify.com/v1/me',
-                    headers: {'Authorization': 'Bearer ' + access_token},
-                    json: true
-                };
-    
-                //Using access token for Spotify
-                request.get(options, function(error, response, body) {
-                    console.log(body);
-                });
-    
-                res.redirect('/#' + 
-                querystring.stringify({
-                    access_token: access_token,
-                    refresh_token: refresh_token
-                }));
-            } else {
-                res.redirect('/#' + 
-                querystring.stringify({
-                    error: 'invalid_token'
-                }))
-            }
-        });
-    } 
-});
+    if(error) {
+        console.error('Callback error:', error);
+        res.send(`Callback error: ${error}`);
+        return;
+    }
 
-app.get('/refresh_token', function(req, res) {
-    // requesting access token from refresh token
-    const refresh_token = req.query.refresh_token;
-    const authOptions = {
-      url: 'https://accounts.spotify.com/api/token',
-      headers: { 'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64')) },
-      form: {
-        grant_type: 'refresh_token',
-        refresh_token: refresh_token
-      },
-      json: true
-    };
-  
-    request.post(authOptions, function(error, response, body) {
-      if (!error && response.statusCode === 200) {
-        const access_token = body.access_token;
-        res.send({
-          'access_token': access_token
-        });
-      }
+    api.authorizationCodeGrant(code).then(data => {
+        const access_token = data.body['access_token'];
+        const refresh_token = data.body['refresh_token'];
+        const expires_in = data.body['expires_in'];
+
+        api.setAccessToken(access_token);
+        api.setRefreshToken(refresh_token);
+
+        res.sendFile('index.html', { root: __dirname });
+
+        setInterval(async () => {
+            const data = await api.refreshAccessToken();
+            const access_token = data.body['access_token'];
+
+            console.log('Access token refreshed');
+            console.log('Access token: ', access_token);
+            api.setAccessToken(access_token);
+        }, expires_in / 2 * 1000);
+    })
+    .catch(error => {
+        console.error('Error getting token:', error);
+        res.send(`Error getting token: ${error}`);
     });
-  });
+});
 
 //Will implement Heroku server hosting
 const port = 8888;
 app.listen(port);
-console.log(`Listening to ${port}`)
+console.log(`Listening to port ${port}`)
