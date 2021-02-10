@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const stateKey = 'spotify_auth_state';
 const app = express();
+const fetch = require('node-fetch');
 
 var SpotifyWebApi = require('spotify-web-api-node');
 require('dotenv').config();
@@ -98,6 +99,13 @@ app.get('/callback', function(req, res) {
 
         res.sendFile('index.html', { root: __dirname });
 
+        //Display logged in user server-side
+        api.getMe().then(function(data) {
+            console.log(data.body['display_name'], 'logged in');
+        }, function(err) {
+            console.error('Error getting user', err);
+        });
+
         setInterval(async () => {
             const data = await api.refreshAccessToken();
             const access_token = data.body['access_token'];
@@ -105,6 +113,8 @@ app.get('/callback', function(req, res) {
             console.log('Access token refreshed');
             console.log('Access token: ', access_token);
             api.setAccessToken(access_token);
+
+            module.exports(access_token);
         }, expires_in / 2 * 1000);
     })
     .catch(error => {
@@ -112,6 +122,7 @@ app.get('/callback', function(req, res) {
         res.send(`Error getting token: ${error}`);
     });
 });
+
 
 //Will implement Heroku server hosting
 const port = 8888;
