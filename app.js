@@ -106,15 +106,25 @@ app.get('/callback', function(req, res) {
             console.error('Error getting user', err);
         });
 
+        //get playlist categories
+        api.getCategories({
+            limit: 10,
+            offset: 0,
+            country: 'US',
+        }).then(function(data) {
+            console.log(data.body.categories.items);
+        }, function(err) {
+            console.error(err);
+        });
+
         setInterval(async () => {
-            const data = await api.refreshAccessToken();
+            const tokenData = await api.refreshAccessToken();
             const access_token = data.body['access_token'];
 
             console.log('Access token refreshed');
             console.log('Access token: ', access_token);
             api.setAccessToken(access_token);
 
-            module.exports(access_token);
         }, expires_in / 2 * 1000);
     })
     .catch(error => {
