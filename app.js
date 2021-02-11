@@ -81,7 +81,7 @@ app.get('/login', function(req, res) {
 app.get('/callback', function(req, res) {
     const error = req.query.error;
     const code = req.query.code;
-    const state = req.query.state; 
+    const state = req.query.state;
 
     if(error) {
         console.error('Callback error:', error);
@@ -112,9 +112,15 @@ app.get('/callback', function(req, res) {
             offset: 0,
             country: 'US',
         }).then(function(data) {
+            api.getAccessToken(access_token);
             console.log(data.body.categories.items);
         }, function(err) {
             console.error(err);
+        });
+
+        //Returns user playlists
+        api.getUserPlaylists(data.body['display_name']).then(function(data) {
+            console.log(data.body.items);
         });
 
         setInterval(async () => {
