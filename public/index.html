@@ -33,7 +33,15 @@
     <body>
         <h1>CityMood</h1>
         <p>Find playlists based on your locations weather</p>
-
-        <div class='spotifyLogin'><button type="button" class="btn btn-outline-success btn-lg">Login to Spotify</button></div>
+        <form action='/login' method='GET'>
+            <div class='spotifyLogin'>
+                <button id='loginSpotify' type="button" class="btn btn-outline-success btn-lg">Login to Spotify</button>
+        
+                <script type='text/javascript'>
+                    document.getElementById('loginSpotify').onclick = function() {
+                        location.href = '/login';
+                    };
+                </script>
+            </div>
     </body>
 </html>
