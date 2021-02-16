@@ -6,6 +6,8 @@ const cors = require('cors');
 const stateKey = 'spotify_auth_state';
 const app = express();
 const fetch = require('node-fetch');
+const ejs = require('ejs');
+const path = require('path');
 
 var SpotifyWebApi = require('spotify-web-api-node');
 const { get } = require('request');
@@ -15,6 +17,9 @@ require('dotenv').config();
 app.use(express.static(__dirname = './public'))
     .use(cors())
     .use(cookieParser());
+
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'))
 
 var generateRandomString = function(length) {
     var text = '';
@@ -60,7 +65,7 @@ const api = new SpotifyWebApi({
 
 app.get('/', function(err, res) {
     if (!error) {
-        res.sendFile('./index.html', { root: __dirname });
+        res.render('index', {});
     } else {
         console.log(err);
     }
@@ -110,7 +115,9 @@ app.get('/callback', function(req, res) {
 
         //Returns user playlists
         api.getUserPlaylists(data.body['display_name']).then(function(data) {
-            console.log(data.body.items[0].images);
+                console.log(data.body.items[0].images[1].url)   
+        }, function(err) {
+            console.log('error retrieving user playlists', err);
         });
     })
     .catch(error => {

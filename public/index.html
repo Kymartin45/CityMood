@@ -13,7 +13,7 @@
         body{background: white; font-family: verdana; color: #00DC0A; padding: 30px}
         h1{font-size: 48px; letter-spacing: 2px; text-align: center;}
         p{font-size: 16px; text-align: center;}
-        body {
+        body{
             background-image: url('cloudy.jpg');
             background-repeat: no-repeat; 
             background-attachment: fixed;
@@ -26,6 +26,7 @@
             display: flex; 
             align-items: center;
             justify-content: center;
+            padding: 40px;
         }
         </style>
 
@@ -33,15 +34,28 @@
     <body>
         <h1>CityMood</h1>
         <p>Find playlists based on your locations weather</p>
-        <form action='/login' method='GET'>
-            <div class='spotifyLogin'>
-                <button id='loginSpotify' type="button" class="btn btn-outline-success btn-lg">Login to Spotify</button>
+            <form action='/login' method='GET'>
+                <div class='spotifyLogin'>
+                    <button id='loginSpotify' type="button" class="btn btn-outline-success btn-lg">Login to Spotify</button>
         
-                <script type='text/javascript'>
-                    document.getElementById('loginSpotify').onclick = function() {
-                        location.href = '/login';
-                    };
-                </script>
-            </div>
+                    <script type='text/javascript'>
+                        document.getElementById('loginSpotify').onclick = function() {
+                            location.href = '/login';
+                        };
+                    </script>
+            </form> 
+                </div>  
+                
+                    <form action='/refresh.html' method='GET'>
+                        <div class='refreshToken'>
+                            <button id='refreshMyToken' type='button' class="btn btn-outline-primary">Refresh your token</button>
+
+                            <script type='text/javascript'> 
+                                document.getElementById('refreshMyToken').onclick = function() {
+                                    location.href = '/refresh';
+                                };
+                            </script>
+                        </div>
+                    </form> 
     </body>
 </html>
