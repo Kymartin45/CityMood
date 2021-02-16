@@ -8,6 +8,8 @@ const app = express();
 const fetch = require('node-fetch');
 
 var SpotifyWebApi = require('spotify-web-api-node');
+const { get } = require('request');
+const { json } = require('body-parser');
 require('dotenv').config();
 
 app.use(express.static(__dirname = './public'))
@@ -68,7 +70,7 @@ app.get('/login', function(req, res) {
     api.clientCredentialsGrant().then(function(data) {
         res.redirect(api.createAuthorizeURL(scopes));
         console.log('Access token expires in ' + data.body['expires_in'] + 's');
-        console.log('Access token: ' + data.body['access_token']);
+        // console.log('Access token: ' + data.body['access_token']);
 
         //Save access token for future calls 
         api.setAccessToken(data.body['access_token']);
@@ -106,36 +108,26 @@ app.get('/callback', function(req, res) {
             console.error('Error getting user', err);
         });
 
-        //get playlist categories
-        api.getCategories({
-            limit: 10,
-            offset: 0,
-            country: 'US',
-        }).then(function(data) {
-            api.getAccessToken(access_token);
-            console.log(data.body.categories.items);
-        }, function(err) {
-            console.error(err);
-        });
-
         //Returns user playlists
         api.getUserPlaylists(data.body['display_name']).then(function(data) {
-            console.log(data.body.items);
+            console.log(data.body.items[0].images);
         });
-
-        setInterval(async () => {
-            const tokenData = await api.refreshAccessToken();
-            const access_token = data.body['access_token'];
-
-            console.log('Access token refreshed');
-            console.log('Access token: ', access_token);
-            api.setAccessToken(access_token);
-
-        }, expires_in / 2 * 1000);
     })
     .catch(error => {
         console.error('Error getting token:', error);
         res.send(`Error getting token: ${error}`);
+    });
+});
+
+//Refresh token 
+app.get('/refresh', function(req, res) {
+    res.redirect(api.createAuthorizeURL(scopes));
+    api.refreshAccessToken().then(function(data) {
+        console.log('Access token refreshed.');
+
+        api.setAccessToken(data.body['access_token']);
+    }, function(err) {
+        console.log('Could not refresh access token', err)
     });
 });
 
