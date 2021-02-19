@@ -53,10 +53,6 @@ const scopes = [
     'user-follow-modify'
 ];
 
-// const client_id = process.env.CLIENT_ID; 
-// const client_secret = process.env.CLIENT_SECRET;
-// const redirect_uri = process.env.REDIRECT_URI;
-
 const api = new SpotifyWebApi({
     clientId: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
@@ -108,14 +104,21 @@ app.get('/callback', function(req, res) {
 
         //Display logged in user server-side
         api.getMe().then(function(data) {
-            console.log(data.body['display_name'], 'logged in');
+            const user_name = data.body['display_name'];
+            console.log(`${user_name} logged in`);
+
         }, function(err) {
             console.error('Error getting user', err);
         });
 
         //Returns user playlists
+        //Will be editing 
         api.getUserPlaylists(data.body['display_name']).then(function(data) {
-                console.log(data.body.items[0].images[1].url)   
+            var albumImage = '';
+            for (var i = 0; i < data.body.items[i].images[1].url.length; i++) {
+                albumImage += console.log(data.body.items[i].images[1].url)   
+            }
+            return albumImage; 
         }, function(err) {
             console.log('error retrieving user playlists', err);
         });

@@ -29,7 +29,6 @@
     "geolocation": "^0.2.0",
     "location": "0.0.1",
     "node-fetch": "^2.6.1",
-    "react": "^17.0.1",
     "request": "^2.88.2",
     "spotify-web-api-node": "^5.0.2",
     "window": "^4.2.7"
