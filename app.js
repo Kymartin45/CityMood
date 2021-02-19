@@ -9,7 +9,7 @@ const fetch = require('node-fetch');
 const ejs = require('ejs');
 const path = require('path');
 
-var SpotifyWebApi = require('spotify-web-api-node');
+const SpotifyWebApi = require('spotify-web-api-node');
 const { get } = require('request');
 const { json } = require('body-parser');
 require('dotenv').config();
@@ -19,17 +19,7 @@ app.use(express.static(__dirname = './public'))
     .use(cookieParser());
 
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'))
-
-var generateRandomString = function(length) {
-    var text = '';
-    var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      
-    for (var i = 0; i < length; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
-};
+app.set('views', path.join(__dirname, 'views'));
 
 const scopes = [
     'ugc-image-upload',
@@ -114,7 +104,7 @@ app.get('/callback', function(req, res) {
         //Returns user playlists
         //Will be editing 
         api.getUserPlaylists(data.body['display_name']).then(function(data) {
-            var albumImage = '';
+            const albumImage = '';
             for (var i = 0; i < data.body.items[i].images[1].url.length; i++) {
                 albumImage += console.log(data.body.items[i].images[1].url)   
             }
@@ -144,5 +134,4 @@ app.get('/refresh', function(req, res) {
 
 //Will implement Heroku server hosting
 const port = 8888;
-app.listen(port);
-console.log(`Listening to port ${port}`)
+app.listen(port,() => console.log(`Listening on http://localhost:${port}/`));
